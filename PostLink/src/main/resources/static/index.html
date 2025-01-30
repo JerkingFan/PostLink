@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload and Download</title>
+    <script>
+        function uploadFile() {
+            var formData = new FormData();
+            var fileInput = document.getElementById("file");
+            formData.append("file", fileInput.files[0]);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/api/v1/files", true);
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    alert("Файл успешно загружен. Хэш: " + xhr.responseText);
+                } else {
+                    alert("Ошибка загрузки файла");
+                }
+            };
+            xhr.send(formData);
+        }
+
+        function getFileByHash() {
+            var hash = document.getElementById("hash").value;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/api/v1/files/" + hash, true);
+            xhr.responseType = 'blob';
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    var fileData = xhr.response;
+                    var blob = new Blob([fileData], { type: "application/octet-stream" });
+                    var url = window.URL.createObjectURL(blob);
+                    var a = document.createElement("a");
+                    a.href = url;
+                    a.download = "file";
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    alert("Файл не найден");
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</head>
+<body>
+<h1>File Upload and Download</h1>
+
+<!-- Форма для загрузки файла -->
+<form onsubmit="event.preventDefault(); uploadFile();">
+    <label for="file">Choose file:</label>
+    <input type="file" id="file" name="file" required>
+    <button type="submit">Upload</button>
+</form>
+
+<!-- Форма для получения файла по хэшу -->
+<form onsubmit="event.preventDefault(); getFileByHash();">
+    <label for="hash">Enter hash:</label>
+    <input type="text" id="hash" name="hash" required>
+    <button type="submit">Download</button>
+</form>
+</body>
+</html>
